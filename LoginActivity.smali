@@ -186,10 +186,11 @@
 .end method
 
 # Method internal untuk memproses kesuksesan (Save Key ke SharedPreferences)
+# Method internal untuk memproses kesuksesan (Save Key & Redirect ke SplashActivity)
 .method private onLoginSuccess()V
-    .registers 4
+    .registers 5
 
-    # Simpan Key secara permanen
+    # 1. Simpan Key secara permanen ke SharedPreferences
     const-string v0, "KeyPrefs"
     const/4 v1, 0x0
     invoke-virtual {p0, v0, v1}, Lcom/auth/LoginActivity;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;
@@ -200,20 +201,28 @@
     const-string v1, "saved_key"
     iget-object v2, p0, Lcom/auth/LoginActivity;->tempKey:Ljava/lang/String;
     invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences$Editor;->putString(Ljava/lang/String;Ljava/lang/String;)Landroid/content/SharedPreferences$Editor;
-    
     invoke-interface {v0}, Landroid/content/SharedPreferences$Editor;->apply()V
 
-    # Tampilkan pesan sukses
+    # 2. Tampilkan pesan sukses lewat Toast
     const-string v0, "Aktivasi Berhasil!"
     const/4 v1, 0x0
     invoke-static {p0, v0, v1}, Landroid/widget/Toast;->makeText(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;
     move-result-object v0
     invoke-virtual {v0}, Landroid/widget/Toast;->show()V
 
-    # Tutup login screen
+    # 3. PROSES PINDAH HALAMAN (INTENT) KE SPLASHACTIVITY
+    new-instance v0, Landroid/content/Intent;
+    const-class v1, Lcom/power/bank/blast/ui/SplashActivity;
+    invoke-direct {v0, p0, v1}, Landroid/content/Intent;-><init>(Landroid/content/Context;Ljava/lang/Class;)V
+
+    # Jalankan Activity baru
+    invoke-virtual {p0, v0}, Lcom/auth/LoginActivity;->startActivity(Landroid/content/Intent;)V
+
+    # 4. Tutup login screen agar user tidak bisa memencet tombol 'Back' kembali ke sini
     invoke-virtual {p0}, Lcom/auth/LoginActivity;->finish()V
     return-void
 .end method
+
 
 # Method internal untuk memproses kegagalan
 .method private onLoginFailed()V
